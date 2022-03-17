@@ -1,4 +1,4 @@
-# iflive
+# `iflive`
 
 A Javascript client for the Infinite Flight simulator Live API version 2
 
