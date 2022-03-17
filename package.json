@@ -1,0 +1,26 @@
+{
+  "name": "iflive",
+  "version": "0.0.1",
+  "description": "JavaScript client for Infinite Flight Live API",
+  "main": "iflive.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likeablegeek/iflive.git"
+  },
+  "author": "@likeablegeek",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/likeablegeek/iflive/issues"
+  },
+  "homepage": "https://github.com/likeablegeek/iflive#readme",
+  "dependencies": {
+    "events": "^3.3.0",
+    "request": "^2.88.2"
+  }
+}
