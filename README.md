@@ -39,7 +39,7 @@ let IFL = require("iflive");
 Or, if you aren't installing with `npm` then you can simply clone this repository and directly reference `iflive.js`:
 
 ```
-let IFL = require("/path/to/iflive.js);
+let IFL = require("/path/to/iflive.js");
 ```
 
 ### Initialisation
