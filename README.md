@@ -2,7 +2,7 @@
 
 A Javascript client for the Infinite Flight simulator Live API version 2
 
-> `iflive` is currently at version 0.9.1 which is considered a release candidate for version 1.0.0. It is being released to allow for input and feedback from the Infinite Flight community and to identify major issues before the first formal release.
+> `iflive` is currently at version 0.9.2 which is considered a release candidate for version 1.0.0. It is being released to allow for input and feedback from the Infinite Flight community and to identify major issues before the first formal release.
 
 ## Table of Contents
 
@@ -11,6 +11,7 @@ A Javascript client for the Infinite Flight simulator Live API version 2
   - [Including `lflive` in your scripts/applications](#including-iflive-in-your-scriptsapplications)
   - [Initialisation](#initialisation)
   - [Calling the API](#calling-the-api)
+  - [Callbacks](#callbacks)
   - [Commands](#commands)
   - [Caching](#caching)
   - [Polling](#polling)
@@ -62,14 +63,20 @@ IFL.init(
   `abcdefghijk...`,
   {
     "enableLog": true,
-    "loggingLevel": 1,
-    "callback": true
-  },
-  () => {
-    console.log("iflive initialised");
+    "loggingLevel": 1
   }
 );
 ```
+
+By default, if `callback` is `false`, after initialisation the `IFLinit` event will be fired and can be used to respond to the initialisation:
+
+```
+IFL.on("IFLinit", function(msg) {
+  //TAKE ACTION HERE AFTER INITIALISATION
+});
+```
+
+> A single argument is passed with the `IFLinit` event -- a message indicating `initialised`
 
 ### Calling the API
 
@@ -89,17 +96,13 @@ The four arguments are:
 For instance, to retrieve a list of active sessions you could use:
 
 ```
-IFL.call("sessions", {}, {}, (res) => {
-  console.log(res);
-});
+IFL.call("sessions", {}, {});
 ```
 
-Or, to retrieve a session's flights:
+Or, to retrieve a session's flights you could use:
 
 ```
-IFL.call("flights", { sessionId: SESSION_ID_HERE }, {}, (res) => {
-  console.log(res);
-});
+IFL.call("flights", { sessionId: SESSION_ID_HERE }, {});
 ```
 
 Or, to retrieve details of a list of users by their Discourse username:
@@ -111,9 +114,111 @@ IFL.call("users", { }, {
     'USERNAME2',
     ...
   ]
-}, (res) => {
+});
+```
+
+When calling the API, the `iflive` module treats this as an asynchronous activity to avoid blocking while waiting for a response from the Infinite Flight Live API. By default, when `ifclive` receives a response from the API, by default it will emit an `IFLdata` event and return a data object containing two properties:
+
+* `command`: The name of the command being returned
+* `params`: An object containing one or more parameters passed to the command when it was invoked
+* `data`: An object containing data sent as JSON in a POST request to the command when it was invoked
+* `result`: The value returned by Infinite Flight for the command
+
+In this case, we could simply log the data returned by the event like this:
+
+```
+IFL.on("IFLdata", function(data) {
+  console.log(data);
+});
+```
+
+If we had sent the `sessions` command as in the example above, the resulting console output displayed when we receive the associated `IFLdata` event would look like this:
+
+```
+{
+  command: 'sessions',
+  params: {},
+  data: {},
+  result: [
+    {
+      maxUsers: 1500,
+      id: '6a04ffe8-765a-4925-af26-d88029eeadba',
+      name: 'Training Server',
+      userCount: 209,
+      type: 1
+    },
+    {
+      maxUsers: 1500,
+      id: '7e5dcd44-1fb5-49cc-bc2c-a9aab1f6a856',
+      name: 'Expert Server',
+      userCount: 460,
+      type: 1
+    },
+    {
+      maxUsers: 2000,
+      id: 'd01006e4-3114-473c-8f69-020b89d02884',
+      name: 'Casual Server',
+      userCount: 172,
+      type: 0
+    }
+  ]
+}
+```
+
+> `iflive` offers an alternative to events using callback functions which is discussed below
+
+### Callbacks
+
+If you prefer to use callbacks instead of events to respond to data returned by the API, you can specify the `callback` option as `true` when initialisating `iflive`:
+
+```
+IFL.init(
+  `abcdefghijk...`,
+  {
+    "enableLog": true,
+    "loggingLevel": 1,
+    "callback": true
+  },
+  () => {
+    console.log("iflive initialised");
+  }
+);
+```
+
+Once initialised in this way, you can make calls to the API and provide callback functions for processing the response:
+
+```
+IFL.call("sessions", {}, {}, (res) => {
   console.log(res);
 });
+```
+
+The response from the API is passed to the callback function and in this example the following output will be logged:
+
+```
+[
+  {
+    maxUsers: 1500,
+    id: '6a04ffe8-765a-4925-af26-d88029eeadba',
+    name: 'Training Server',
+    userCount: 203,
+    type: 1
+  },
+  {
+    maxUsers: 1500,
+    id: '7e5dcd44-1fb5-49cc-bc2c-a9aab1f6a856',
+    name: 'Expert Server',
+    userCount: 466,
+    type: 1
+  },
+  {
+    maxUsers: 2000,
+    id: 'd01006e4-3114-473c-8f69-020b89d02884',
+    name: 'Casual Server',
+    userCount: 180,
+    type: 0
+  }
+]
 ```
 
 ### Commands
