@@ -1,9 +1,9 @@
 /*
 iflive: JavaScript client for Infinite Flight Live API
-Version: 0.0.1
+Version: 0.9.0
 Author: @likeablegeek (https://likeablegeek.com/)
 Distributed by: FlightSim Ninja (http://flightim.ninja)
-Copyright 2023.
+Copyright 2022.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -23,7 +23,7 @@ const request = require("request");
 const events = require('events'); // For emitting events back to calling scripts
 
 /****
- * Define upcloud-api object
+ * Define iflive object
  */
 
 let IFL = {
@@ -44,11 +44,11 @@ let IFL = {
   /*****
    * Global variables
    */
-  apikey: "",
-  hostname: "api.infiniteflight.com",
-  basepath: "/public/v2/",
-  isCallback: false,
-  sessions: {},
+  apikey: "", // IF LIve API key needed for iflive to work
+  hostname: "api.infiniteflight.com", // Hostname for Live API endpoint
+  basepath: "/public/v2/", // Path for current version of Live API
+  isCallback: false, // By default we trigger events instead of callbacks
+  sessions: {}, // On initialisation we will fetch and store the current active sessions for immediate use
 
   /*****
    * Event emitter for return events to client
@@ -65,74 +65,107 @@ let IFL = {
    * Command manifest
    */
   manifest: {
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/sessions
     sessions: {
       type: "GET",
       path: "sessions"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/flights
     flights: {
       type: "GET",
       path: "sessions/[sessionId]/flights"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/flight-route
     flightRoute: {
       type: "GET",
       path: "sessions/[sessionId]/flights/[flightId]/route"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/flight-plan
     flightPlan: {
       type: "GET",
       path: "sessions/[sessionId]/flights/[flightId]/flightplan"
     },
+    
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/atc
     atcFreqs: {
       type: "GET",
       path: "sessions/[sessionId]/atc"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/user-stats
     users: {
       type: "POST",
       path: "users"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/user-grade
     userDetails: {
       type: "GET",
       path: "users/[userId]"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/atis
     airportAtis: {
       type: "GET",
       path: "sessions/[sessionId]/airport/[icao]/atis"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/airport-status
     airportStatus: {
       type: "GET",
       path: "sessions/[sessionId]/airport/[icao]/status"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/world-status
     worldStatus: {
       type: "GET",
       path: "sessions/[sessionId]/world"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/oceanic-tracks
     tracks: {
       type: "GET",
       path: "tracks"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/user-flights
     userFlights: {
       type: "GET",
       path: "users/[userId]/flights"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/user-flight
     userFlight: {
       type: "GET",
       path: "users/[userId]/flights/[flightId]"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/user-atc-sessions
     userAtcSessions: {
       type: "GET",
       path: "users/[userId]/atc"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/user-atc-session
     userAtcSession: {
       type: "GET",
       path: "users/[userId]/atc/[atcSessionId]"
     },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/notams
     notams: {
       type: "GET",
       path: "sessions/[sessionId]/notams"
     }
+
   },
 
   /*****
-   * Cache object
+   * Cache object to hold cache data for all commands
    */
   cache: {
     session: {},
@@ -154,9 +187,9 @@ let IFL = {
   },
 
   /*****
-   * Poll object
+   * Poll object to hold polling interval objects for all commands
    */
-   polls: {
+  polls: {
     session: {},
     flights: {},
     flightRoute: {},
@@ -181,7 +214,7 @@ let IFL = {
   log: (msg,level = IFL.logLevel) => { // generic logging function
     if (IFL.enableLog) {
       if (level <= IFL.logLevel) {
-        console.log (IFL.name, msg);
+        console.log(IFL.name, msg);
       }
     }
   },
@@ -196,6 +229,15 @@ let IFL = {
 
   /*****
    * Utility function for issuing API calls
+   * 
+   * Handles HTTP GET, POST, PUT, PATCH and DELETE; Live API currently
+   * only uses GET and POST but this allows extension to cover other
+   * request types.
+   * 
+   * This function is based on a similar function in the `upcloud-api`
+   * npm module which uses the same basic architecture:
+   * 
+   * https://github.com/likeablegeek/upcloud-api
    */
   call: (cmd, params = {}, data = {}, callback = () => {}) => {
 
@@ -203,8 +245,10 @@ let IFL = {
     IFL.log("params: " + JSON.stringify(params), IFL.WARN);
     IFL.log("data: " + JSON.stringify(data), IFL.WARN);
 
+    // fn will rever to the appropriate method of the `request` package
     let fn = request.get; // GET is default requesst type
 
+    // Determine the request type from the manifest and set `fn` accordingly
     switch(IFL.manifest[cmd].type) {
       case "GET":
         fn = request.get;
@@ -223,16 +267,17 @@ let IFL = {
         break;
     }
 
-    IFL.log("Request function: " + fn, IFL.WARN);
-
+    // Determine the URL path for the API call
     let path = IFL.manifest[cmd].path;
 
+    // Replace query parameters in the URL path, if any
     for (param in params) {
       path = path.replace("[" + param + "]", params[param]);
     }
 
     IFL.log("Request path: " + path, IFL.INFO);
 
+    // Set up options for HTTP request
     let options = {
       url: "https://" + IFL.hostname + IFL.basepath + path,
       headers: {
@@ -240,12 +285,16 @@ let IFL = {
       }
     };
 
+    // If POST, PUT or PATCH, pass `data` as JSON in the body
     if (IFL.manifest[cmd].type == "POST" || IFL.manifest[cmd].type == "PUT" || IFL.manifest[cmd].type == "PATCH") {
       options.json = true;
       options.body = data;
     }
 
+    // Call the API
     fn(options, (err, res, body) => {
+
+      // Callback for API response
 
       IFL.log("call: received data from API", IFL.INFO);
       IFL.log("Data received: " + JSON.stringify(body), IFL.WARN);
@@ -259,7 +308,12 @@ let IFL = {
 
       IFL.log("Data to return: " + JSON.stringify(resData), IFL.WARN);
 
-      // Save cache data
+      // Save cache data with key as one of:
+      //
+      // cmd
+      // cmd + params object
+      // cmd + data object
+      //
       if (Object.entries(params).length > 0) {
         IFL.cache[cmd][params] = {
           data: resData,
@@ -280,14 +334,10 @@ let IFL = {
       // Callback or event to return result
       if (IFL.isCallback) { // Use a callback if one is available
 
-        console.log("callback");
-
         callback(resData);
 
       } else { // Use an event
 
-        console.log("event");
-        
         IFL.eventEmitter.emit('IFLdata',{"command": cmd, "params": params, "data": data, "result": resData}); // Return data to calling script through an event
 
       }
@@ -308,9 +358,15 @@ let IFL = {
     // Tracking variable to see if we are done returning a value
     let done = false;
 
-    // Return cache data if available
-    if (Object.entries(params).length > 0) {
+    // Return cache data if available using one of the following as cache key:
+    //
+    // cmd
+    // cmd + params object
+    // cmd + data object
+    //
+    if (Object.entries(params).length > 0) { // Any parameters?
 
+      // Do we have a cache entry? If so, do we have any cache data?
       if (IFL.cache[cmd].hasOwnProperty(params) && Object.entries(IFL.cache[cmd][params]).length > 0) {
 
         IFL.log("Cache hit: params", IFL.WARN);
@@ -330,10 +386,11 @@ let IFL = {
 
       }
 
-    } else if (Object.entries(data).length > 0) {
+    } else if (Object.entries(data).length > 0) { // Any post data?
 
       IFL.log("Cache hit: data", IFL.WARN);
 
+      // Do we have a cache entry? If so, do we have any cache data?
       if (IFL.cache[cmd].hasOwnProperty(data) && Object.entries(IFL.cache[cmd][data]).length > 0) {
 
         // Callback or event to return result
@@ -353,7 +410,7 @@ let IFL = {
 
     } else {
 
-      if (Object.entries(IFL.cache[cmd]).length > 0) {
+      if (Object.entries(IFL.cache[cmd]).length > 0) { // Any cache hit for just the cmd?
 
         IFL.log("Cache hit: plain", IFL.WARN);
 
@@ -379,8 +436,10 @@ let IFL = {
 
       IFL.log("No cache hit", IFL.WARN);
 
+      // Call the API to fetch data; callback provided if callbacks are being used; event will get returned directly from call functions
       IFL.call(cmd, params, data, (res) => {
 
+        // Fire the callback using data from the cache for consistency with cases where there is a cache hit
         if (Object.entries(params).length > 0) {
 
           if (IFL.cache[cmd].hasOwnProperty(params) && Object.entries(IFL.cache[cmd][params]).length > 0) {
@@ -409,6 +468,8 @@ let IFL = {
 
         } else {
 
+          // Nothing in the cache -- return null
+
           IFL.log("Still no cache hit", IFL.WARN);
 
           callback(null);
@@ -433,28 +494,48 @@ let IFL = {
     // Clear poll
     IFL.clear(pollCmd, pollParams, pollData, pollCallback);
 
-    // Establish poll
+    // Establish poll storing the interval objects with a cache key:
+    //
+    // cmd
+    // cmd + params object
+    // cmd + data object
+    // 
     if (Object.entries(pollParams).length > 0) {
+
+      // Call the command initially before creating interval
       IFL.call(pollCmd,pollParams,pollData,pollCallback);
+
+      // Create interval for polling
       IFL.polls[pollCmd][pollParams] = {
         interval: setInterval((cmd,params,data,callback) => {
           IFL.call(cmd,params,data,callback);
         }, pollThrottle, pollCmd, pollParams, pollData, pollCallback)
       }
+
     } else if (Object.entries(pollData).length > 0) {
+
+      // Call the command initially before creating interval
       IFL.call(pollCmd,pollParams,pollData,pollCallback);
+
+      // Create interval for polling
       IFL.polls[pollCmd][pollData] = {
         interval: setInterval((cmd,params,data,callback) => {
           IFL.call(cmd,params,data,callback);
         }, pollThrottle, pollCmd, pollParams, pollData, pollCallback)
       }
+
     } else {
+
+      // Call the command initially before creating interval
       IFL.call(pollCmd,pollParams,pollData,pollCallback);
+
+      // Create interval for polling
       IFL.polls[pollCmd] = {
         interval: setInterval((cmd,params,data,callback) => {
           IFL.call(cmd,params,data,callback);
         }, pollThrottle, pollCmd, pollParams, pollData, pollCallback)
       };
+
     }
 
   },
@@ -468,19 +549,36 @@ let IFL = {
     IFL.log("params: " + JSON.stringify(pollParams), IFL.WARN);
     IFL.log("data: " + JSON.stringify(pollData), IFL.WARN);
 
-    // Establish poll
+    // Clear poll using appropriate cache key:
+    //
+    // cmd
+    // cmd + params object
+    // cmd + data object
+    // 
     if (Object.entries(pollParams).length > 0) {
+
       if (IFL.polls[pollCmd][pollParams] && IFL.polls[pollCmd][pollParams].hasOwnProperty("interval")) {
+
         clearInterval(IFL.polls[pollCmd][pollParams]["interval"]);
+
       }
+
     } else if (Object.entries(pollData).length > 0) {
+
       if (IFL.polls[pollCmd][pollData] && IFL.polls[pollCmd][pollData].hasOwnProperty("interval")) {
+
         clearInterval(IFL.polls[pollCmd][pollData]["interval"]);
+
       }
+
     } else {
+
       if (IFL.polls[pollCmd].hasOwnProperty("interval")) {
+
         clearInterval(IFL.polls[pollCmd]["interval"]);
+
       }
+
     }
 
   },
@@ -493,11 +591,13 @@ let IFL = {
     IFL.log("init", IFL.INFO);
     IFL.log("params: " + JSON.stringify(params), IFL.WARN);
 
-    IFL.apikey = apikey;
+    try {
 
-    if (params.enableLog) IFL.enableLog = params.enableLog; // Set Logging on/off
-    if (params.logLevel) IFL.logLevel = params.logLevel; // Set logging message level
-    if (params.callback) IFL.isCallback = params.callback; // Set if we are using callbacks
+      IFL.apikey = apikey;
+
+      if (params.enableLog) IFL.enableLog = params.enableLog; // Set Logging on/off
+      if (params.logLevel) IFL.logLevel = params.logLevel; // Set logging message level
+      if (params.callback) IFL.isCallback = params.callback; // Set if we are using callbacks
 
       // Callback or event to return result
       if (IFL.isCallback) { // Use a callback if one is available
@@ -507,8 +607,14 @@ let IFL = {
       } else { // Use an event
 
         IFL.eventEmitter.emit('IFLinit',"initialised"); // Return data to calling script through an event
-            
+        
       }
+
+    } catch(e) {
+
+      IFL.eventEmitter.emit('IFLerror',e);
+
+    }
 
   }
 

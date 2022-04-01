@@ -2,12 +2,21 @@
 
 A Javascript client for the Infinite Flight simulator Live API version 2
 
+> `iflive` is currently at version 0.9.1 which is considered a release candidate for version 1.0.0. It is being released to allow for input and feedback from the Infinite Flight community and to identify major issues before the first formal release.
+
 ## Table of Contents
 
 - [Installing `iflive`](#installing-iflive)
 - [Using `iflive`](#using-iflive)
   - [Including `lflive` in your scripts/applications](#including-iflive-in-your-scriptsapplications)
   - [Initialisation](#initialisation)
+  - [Calling the API](#calling-the-api)
+  - [Commands](#commands)
+  - [Caching](#caching)
+  - [Polling](#polling)
+- [Dependencies](#dependencies)
+- [Applications usiing `iflive`](#applications-using-iflive)
+- [Copyright and License](#copyright-and-license)
 
 ## Installing `iflive`
 
@@ -109,7 +118,7 @@ IFL.call("users", { }, {
 
 ### Commands
 
-### `sessions`
+#### `sessions`
 
 *Description*: Retrieve active sessions (servers) in Infinite Flight.
 
@@ -121,7 +130,7 @@ IFL.call("users", { }, {
 
 *Parameters*: None
 
-### `flights`
+#### `flights`
 
 *Description*: Retrieve a list of all flights for a session.
 
@@ -135,7 +144,7 @@ IFL.call("users", { }, {
 
 * `sessionId`: ID of the session returned from the `sessions` command
 
-### `flightRoute`
+#### `flightRoute`
 
 *Description*: Retrieve the flown route of a specific flight with position, altitude, speed and track information at different points in time. Only available for the Expert and Training servers.
 
@@ -150,7 +159,7 @@ IFL.call("users", { }, {
 * `sessionId`: ID of the session returned from the `sessions` command
 * `flightId`: IF of the flight in the session
 
-### `flightPlan`
+#### `flightPlan`
 
 *Description*: Retrieve the flight plan for a specific active flight.
 
@@ -165,7 +174,7 @@ IFL.call("users", { }, {
 * `sessionId`: ID of the session returned from the `sessions` command
 * `flightId`: IF of the flight in the session
 
-### `atcFreqs`
+#### `atcFreqs`
 
 *Description*: Retrieve active Air Traffic Control frequencies for a session
 
@@ -179,7 +188,7 @@ IFL.call("users", { }, {
 
 * `sessionId`: ID of the session returned from the `sessions` command
 
-### `users`
+#### `users`
 
 *Description*: Retrieve user statistics for multiple users, including their grade, flight time and username
 
@@ -193,7 +202,7 @@ IFL.call("users", { }, {
 
 *POST Data*: See the [Live API documentation](https://infiniteflight.com/guide/developer-reference/live-api/user-stats)
 
-### `userDetails`
+#### `userDetails`
 
 *Description*: Retrieve the full grade table and detailed statistics for a user
 
@@ -207,7 +216,7 @@ IFL.call("users", { }, {
 
 * `userId`: ID of the user
 
-### `airportAtis`
+#### `airportAtis`
 
 *Description*: Retrieve the ATIS for an airport on a specific server if it is active
 
@@ -222,7 +231,7 @@ IFL.call("users", { }, {
 * `sessionId`: ID of the session returned from the `sessions` command
 * `icao`: ICAO of the airport
 
-### `airportStatus`
+#### `airportStatus`
 
 *Description*: Retrieve active ATC status information for an airport, and the number of inbound and outbound aircraft
 
@@ -237,7 +246,7 @@ IFL.call("users", { }, {
 * `sessionId`: ID of the session returned from the `sessions` command
 * `icao`: ICAO of the airport
 
-### `worldStatus`
+#### `worldStatus`
 
 *Description*: Retrieve active ATC status information and inbound/outbound aircraft information for all airports with activity on a specific server
 
@@ -251,7 +260,7 @@ IFL.call("users", { }, {
 
 * `sessionId`: ID of the session returned from the `sessions` command
 
-### `tracks`
+#### `tracks`
 
 *Description*: Retrieves a list of Oceanic Tracks active in Infinite Flight multiplayer sessions
 
@@ -263,7 +272,7 @@ IFL.call("users", { }, {
 
 *Parameters*: None
 
-### `userFlights`
+#### `userFlights`
 
 *Description*: Retrieves the online flight logbook for a given user
 
@@ -277,7 +286,7 @@ IFL.call("users", { }, {
 
 * `userId`: ID of the user
 
-### `userFlight`
+#### `userFlight`
 
 *Description*: Retrieves a flight from the logbook of a given user
 
@@ -292,7 +301,7 @@ IFL.call("users", { }, {
 * `userId`: ID of the user
 * `flightId`: ID of the flight
 
-### `userAtcSessions`
+#### `userAtcSessions`
 
 *Description*: Retrieves the ATC session log for a given user
 
@@ -306,7 +315,7 @@ IFL.call("users", { }, {
 
 * `userId`: ID of the user
 
-### `userAtcSession`
+#### `userAtcSession`
 
 *Description*: Retrieves an ATC session from the log of a given user
 
@@ -321,7 +330,7 @@ IFL.call("users", { }, {
 * `userId`: ID of the user
 * `atcSessionId`: IF of the ATC session
 
-### `notams`
+#### `notams`
 
 *Description*: Retrieve a list of all NOTAMs for a session
 
@@ -335,7 +344,7 @@ IFL.call("users", { }, {
 
 * `sessionId`: ID of the session returned from the `sessions` command
 
-## Caching
+### Caching
 
 `iflive` has an in-built caching mechanism which keeps the last fetched values for commands so that they can be refetched (if needed) without sending a request back to the server. A combination of information is used to form unique keys for storing cached values:
 
@@ -359,7 +368,7 @@ The four arguments are:
 
 The cache can prove particulately useful when working with polling as described below.
 
-## Polling
+### Polling
 
 `iflive` includes a polling mechanism which you can use to set up automatic polling of a specific API command on a fixed schedule. This is useful where you need to regularly fetch updated data from the API.
 
