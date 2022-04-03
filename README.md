@@ -578,7 +578,7 @@ This will output the following:
 Air France
 ```
 
-> These functions use the [aircraft and livery CSV data from Infinite Flight's @carmichaelalonso available on GitHub](https://gist.github.com/carmichaelalonso/6457baa608152fa3b2199be4f2161082).
+> These functions use the [aircraft and livery CSV data from Infinite Flight's @carmichaelalonso available on GitHub](https://gist.github.com/carmichaelalonso/6457baa608152fa3b2199be4f2161082). The current version of `iflive` uses the data provided for Infinite Flight 22.02.
 
 ## Dependencies
 
