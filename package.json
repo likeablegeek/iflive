@@ -1,6 +1,6 @@
 {
   "name": "iflive",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "JavaScript client for Infinite Flight Live API",
   "main": "iflive.js",
   "directories": {
@@ -20,7 +20,10 @@
   },
   "homepage": "https://github.com/likeablegeek/iflive#readme",
   "dependencies": {
+    "csv-parse": "^5.0.4",
     "events": "^3.3.0",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7",
     "request": "^2.88.2"
   }
 }

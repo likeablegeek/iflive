@@ -2,7 +2,7 @@
 
 A Javascript client for the Infinite Flight simulator Live API version 2
 
-> `iflive` is currently at version 0.9.2 which is considered a release candidate for version 1.0.0. It is being released to allow for input and feedback from the Infinite Flight community and to identify major issues before the first formal release.
+> `iflive` is currently at version 0.9.3 which is considered a release candidate for version 1.0.0. It is being released to allow for input and feedback from the Infinite Flight community and to identify major issues before the first formal release.
 
 ## Table of Contents
 
@@ -15,6 +15,7 @@ A Javascript client for the Infinite Flight simulator Live API version 2
   - [Commands](#commands)
   - [Caching](#caching)
   - [Polling](#polling)
+- [Utility Functions](#utility-functions)
 - [Dependencies](#dependencies)
 - [Applications usiing `iflive`](#applications-using-iflive)
 - [Copyright and License](#copyright-and-license)
@@ -544,12 +545,49 @@ For instance, to stop polling a session's flights every five seconds as defined 
 IFL.clear("flights", { sessionId: SESSION_ID_HERE }, {});
 ```
 
+## Utility Functions
+
+`iflive` offers two utility functions:
+
+* `aircraft`: Returns an aircraft type name when passed the ID of the aircraft type
+* `livery`: Returns an aircraft livery name when passed the ID of the aircraft livery
+
+These functions are designed to be used with the aircraft type and livery IDs returned by the Live API.
+
+For instance, you can fetch the aircraft type name for the aircraft ID `230ec095-5e36-4637-ba2f-68831b31e891` and output to the console as follows:
+
+```
+console.log(IFL.aircraft("230ec095-5e36-4637-ba2f-68831b31e891"));
+```
+
+This will output the following:
+
+```
+Airbus A350
+```
+
+Similarly, if you want output the name of the livery with ID `cd8085a5-015b-433f-a623-6a59de2523ba` to the console you could use:
+
+```
+console.log(IFL.livery("cd8085a5-015b-433f-a623-6a59de2523ba"));
+```
+
+This will output the following:
+
+```
+Air France
+```
+
+> These functions use the [aircraft and livery CSV data from Infinite Flight's @carmichaelalonso available on GitHub](https://gist.github.com/carmichaelalonso/6457baa608152fa3b2199be4f2161082).
+
 ## Dependencies
 
-`ifc2` depends on the following `npm`/Node packages:
+`iflive` depends on the following `npm`/Node packages:
 
 * [`request`](https://www.npmjs.com/package/request) - Simplified HTTP client for connecting to the UpCloud endpoints
 * [`events`](https://nodejs.org/api/events.html) - core Node module: For emitting events to calling scripts
+
+`iflive` also used the [aircraft and livery CSV data provided by Infinite Flight's @carmichaelalonso](https://gist.github.com/carmichaelalonso/6457baa608152fa3b2199be4f2161082).
 
 ## Applications using `iflive`
 

@@ -19,8 +19,33 @@ limitations under the License.
  * Import required modules
  */
 
-const request = require("request");
+const request = require("request"); // For making HTTP JSON requests
 const events = require('events'); // For emitting events back to calling scripts
+const csv = require("csv-parse/sync"); // For importing the aircraft and liveries CSVs
+const fs = require("fs"); // For reading files
+const path = require("path"); // For system-independent file path creation
+
+/*****
+ * Import aircraft CSV
+ */
+const aircraftCSV = fs.readFileSync(path.join(__dirname,"aircraft.csv"));
+const aircraft = csv.parse(aircraftCSV,{
+  input: true,
+  skip_empty_lines: true,
+  columns: true,
+  objname: 'id'
+});
+
+/*****
+ * Import aircraft CSV
+ */
+const liveriesCSV = fs.readFileSync(path.join(__dirname,"liveries.csv"));
+const liveries = csv.parse(liveriesCSV,{
+  input: true,
+  skip_empty_lines: true,
+  columns: true,
+  objname: 'id'
+});
 
 /****
  * Define iflive object
@@ -217,6 +242,21 @@ let IFL = {
         console.log(IFL.name, msg);
       }
     }
+  },
+
+  /*****
+   * Utility function to get aircraft name from aircraft ID
+   */
+  aircraft: (id) => {
+    return aircraft[id].name;
+  },
+
+  /*****
+   * 
+   * Utility function to get livery name from livery ID
+   */
+  livery: (id) => {
+    return liveries[id].name;
   },
 
   /*****
