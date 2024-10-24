@@ -185,8 +185,38 @@ let IFL = {
     notams: {
       type: "GET",
       path: "sessions/[sessionId]/notams"
-    }
+    },
 
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/aircraft
+    aircraft: {
+      type: "GET",
+      path: "aircraft"
+    },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/aircraft-liveries
+    aircraftLiveries: {
+      type: "GET",
+      path: "aircraft/[aircraftId]/liveries"
+    },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/liveries
+    liveries: {
+      type: "GET",
+      path: "aircraft/liveries"
+    },
+    
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/3d-airports
+    airports: {
+      type: "GET",
+      path: "airports"
+    },
+
+    // Infinite Flight Live API reference: https://infiniteflight.com/guide/developer-reference/live-api/airport-information
+    airportInfo: {
+      type: "GET",
+      path: "airports/[airportIcao]"
+    }
+    
   },
 
   /*****
@@ -208,7 +238,12 @@ let IFL = {
     userFlight: {},
     userAtcSessions: {},
     userAtcSession: {},
-    notams: {}
+    notams: {},
+    aircraft: {},
+    aircraftLiveries: {},
+    liveries: {},
+    airports: {},
+    airportInfo: {}
   },
 
   /*****
@@ -230,7 +265,12 @@ let IFL = {
     userFlight: {},
     userAtcSessions: {},
     userAtcSession: {},
-    notams: {}
+    notams: {},
+    aircraft: {},
+    aircraftLiveries: {},
+    liveries: {},
+    airports: {},
+    airportInfo: {}
   },
 
   /*****

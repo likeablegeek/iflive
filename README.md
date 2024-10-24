@@ -450,6 +450,70 @@ The response from the API is passed to the callback function and in this example
 
 * `sessionId`: ID of the session returned from the `sessions` command
 
+#### `aircraft`
+
+*Description*: Retrieve a list of all aircraft
+
+*Live API Endpoint*: `https://api.infiniteflight.com/public/v2/aircraft`
+
+*Live API Documentation Reference*: [`https://infiniteflight.com/guide/developer-reference/live-api/aircraft`](https://infiniteflight.com/guide/developer-reference/live-api/aircraft)
+
+*Request Type*: GET
+
+*Parameters*: None
+
+#### `aircraftLiveries`
+
+*Description*: Retrieve a list of all liveries for a specific aircraft
+
+*Live API Endpoint*: `https://api.infiniteflight.com/public/v2/aircraft/[aircraftId]/liveries`
+
+*Live API Documentation Reference*: [`https://infiniteflight.com/guide/developer-reference/live-api/aircraft-liveries`](https://infiniteflight.com/guide/developer-reference/live-api/aircraft-liveries)
+
+*Request Type*: GET
+
+*Parameters*:
+
+* `aircraftId`: ID of the aircraft returned from the `aircraft` command
+
+#### `liveries`
+
+*Description*: Retrieve a list of all liveries for all aircraft
+
+*Live API Endpoint*: `https://api.infiniteflight.com/public/v2/liveries`
+
+*Live API Documentation Reference*: [`https://infiniteflight.com/guide/developer-reference/live-api/liveries`](https://infiniteflight.com/guide/developer-reference/live-api/liveries)
+
+*Request Type*: GET
+
+*Parameters*: None
+
+#### `airports`
+
+*Description*: Retrieve a list of all 3D airports
+
+*Live API Endpoint*: `https://api.infiniteflight.com/public/v2/airports`
+
+*Live API Documentation Reference*: [`https://infiniteflight.com/guide/developer-reference/live-api/3d-airports`](https://infiniteflight.com/guide/developer-reference/live-api/3d-airports)
+
+*Request Type*: GET
+
+*Parameters*: None
+
+#### `airportIno`
+
+*Description*: Retrieve a details of a specific airport
+
+*Live API Endpoint*: `https://api.infiniteflight.com/public/v2/airports/[airportIcao]`
+
+*Live API Documentation Reference*: [`https://infiniteflight.com/guide/developer-reference/live-api/airport-information`](https://infiniteflight.com/guide/developer-reference/live-api/airport-information)
+
+*Request Type*: GET
+
+*Parameters*:
+
+* `airportIcao`: ICAO code of the airport returned from the `airports` command
+
 ### Caching
 
 `iflive` has an in-built caching mechanism which keeps the last fetched values for commands so that they can be refetched (if needed) without sending a request back to the server. A combination of information is used to form unique keys for storing cached values:
