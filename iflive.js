@@ -382,8 +382,10 @@ let IFL = {
       // Convert to string, parse as JSON
       if (typeof(body) == "string" && body.length > 0) {
         resData = JSON.parse(body).result;
-      } else {
+      } else if (body.result) {
         resData = body.result;
+      } else {
+        resData = {};
       }
 
       IFL.log("Data to return: " + JSON.stringify(resData), IFL.WARN);
