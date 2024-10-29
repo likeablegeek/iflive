@@ -371,60 +371,66 @@ let IFL = {
       options.body = data;
     }
 
-    // Call the API
-    fn(options, (err, res, body) => {
+    try {
 
-      // Callback for API response
+      // Call the API
+      fn(options, (err, res, body) => {
 
-      IFL.log("call: received data from API", IFL.INFO);
-      IFL.log("Data received: " + JSON.stringify(body), IFL.WARN);
+        // Callback for API response
 
-      // Convert to string, parse as JSON
-      if (typeof(body) == "string" && body.length > 0) {
-        resData = JSON.parse(body).result;
-      } else if (body.result) {
-        resData = body.result;
-      } else {
-        resData = {};
-      }
+        IFL.log("call: received data from API", IFL.INFO);
+        IFL.log("Data received: " + JSON.stringify(body), IFL.WARN);
 
-      IFL.log("Data to return: " + JSON.stringify(resData), IFL.WARN);
-
-      // Save cache data with key as one of:
-      //
-      // cmd
-      // cmd + params object
-      // cmd + data object
-      //
-      if (Object.entries(params).length > 0) {
-        IFL.cache[cmd][params] = {
-          data: resData,
-          ts: Date.now()
+        // Convert to string, parse as JSON
+        if (typeof(body) == "string" && body.length > 0) {
+          resData = JSON.parse(body).result;
+        } else if (body.result) {
+          resData = body.result;
+        } else {
+          resData = {};
         }
-      } else if (Object.entries(data).length > 0) {
-        IFL.cache[cmd][data] = {
-          data: resData,
-          ts: Date.now()
+
+        IFL.log("Data to return: " + JSON.stringify(resData), IFL.WARN);
+
+        // Save cache data with key as one of:
+        //
+        // cmd
+        // cmd + params object
+        // cmd + data object
+        //
+        if (Object.entries(params).length > 0) {
+          IFL.cache[cmd][params] = {
+            data: resData,
+            ts: Date.now()
+          }
+        } else if (Object.entries(data).length > 0) {
+          IFL.cache[cmd][data] = {
+            data: resData,
+            ts: Date.now()
+          }
+        } else {
+          IFL.cache[cmd] = {
+            data: resData,
+            ts: Date.now()
+          };
         }
-      } else {
-        IFL.cache[cmd] = {
-          data: resData,
-          ts: Date.now()
-        };
-      }
 
-      // Callback or event to return result
-      if (IFL.isCallback) { // Use a callback if one is available
+        // Callback or event to return result
+        if (IFL.isCallback) { // Use a callback if one is available
 
-        callback(resData);
+          callback(resData);
 
-      } else { // Use an event
+        } else { // Use an event
 
-        IFL.eventEmitter.emit('IFLdata',{"command": cmd, "params": params, "data": data, "result": resData}); // Return data to calling script through an event
+          IFL.eventEmitter.emit('IFLdata',{"command": cmd, "params": params, "data": data, "result": resData}); // Return data to calling script through an event
 
-      }
+        }
 
-    });
+      });
+
+    } catch (err) {
+      IFL.log("call: " + err.message, IFL.ERROR);
+    }
 
   },
 
